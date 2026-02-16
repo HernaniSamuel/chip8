@@ -1,0 +1,18 @@
+Dia 1 - 16/02/2026
+Encontrei um pdf de um tcc da usp que descreve bem o chip8 e o processo de emulação, vou me basear nele, ele já fez o que eu ia fazer sozinho.
+Isso me permite apenas arquitetar a solução baseada nas especificações já descritas por ele.
+O nome do artigo é "Iniciando no desenvolvimento de emuladores com CHIP-8" feito por Diego Pereira Alvarez
+
+ARQUITETURA
+enum de instruções
+vetor [u8; 16] para os registradores
+vetor [u16; 2] para os outros dois registradores que apontam para endereços na memória
+stack com 4096 u8 [u8; 4096] para a memória do chip8
+Módulo de CPU, Som e Tela serão necessários para uma boa divisão de responsabilidades
+struct cpu, struct sound, struct screen, estas vão refletir bem a robustez da arquitetura
+Vou ter que usar algumas crates para não reinventar a roda na parte da tela e do som, o foco é aprendeder sobre o funcionamento de hardware
+A memória de vídeo é uma matriz 64x32 de booleanos [[bool; 64]; 32] que indicam quais pixels estão pretos ou brancos
+
+Obs: terei que ver a especificação oficial e descrever os estados e transições do sistema antes de começar a arquitetar de fato, o PDF não se aprofundou
+o bastante para que eu pudesse aproveitar dele mas foi útil para uma introdução geral de emuladores e do chip8! 
+Acredito que eu venha a fazer isso no Notion, o que vai ajudar pra caramba na readme futuramente
