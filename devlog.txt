@@ -16,3 +16,22 @@ A memória de vídeo é uma matriz 64x32 de booleanos [[bool; 64]; 32] que indic
 Obs: terei que ver a especificação oficial e descrever os estados e transições do sistema antes de começar a arquitetar de fato, o PDF não se aprofundou
 o bastante para que eu pudesse aproveitar dele mas foi útil para uma introdução geral de emuladores e do chip8! 
 Acredito que eu venha a fazer isso no Notion, o que vai ajudar pra caramba na readme futuramente
+
+Dia 2 - 18/02/2026
+Eu entendi, não preciso arquitetar uma arquitetura que já está pronta, o Chip-8 já é a arquitetura em si... Bom, vou focar em implementar então, fazendo
+código bem modularizado e profissional.
+Primeiramente, separando CPU, Keyboard, Sound e Screen como eu já tinha proposto, divisão de responsabilidades facilita manutenção e escalabilidade...
+Optei por não modularizar demais, o próprio chip-8 é bem monolítico pelo que entendi, não divide muito as responsabilidades. Então optei por fazer uma
+struct chip8 contendo todos os atributos e estados possíveis da máquina e módulos separados encapsulam a transição de estados para garantir a segurança
+e para que o arquivo não fique gigante com tudo no mesmo lugar, aí a manutenção continua fácil e a escalabilidade também continua facilmente possível
+Eu tentei separar mais, colocando cada módulo com seu estado e encapsulamento mas acabou que teve muito boilerplate, sinal de overengineering que não agrega em nada.
+Estou usando o ChatGPT como documentação interativa e como "mentor", ainda estou muito confuso, mas me recuso a usar ele diretamente no código, ele nem sabe que estou usando Rust.
+Ok, acabei de perceber que a struct Chip8 deve conter suas próprias funções de modificação de estado de forma segura, tipo advance_pc enquanto outros módulos como cpu contém a lógica
+que pede ao chip8 para mudar seu estado (por exemplo o execute pedindo para avançar o pc)
+Chip8 contém os estados e os setters que modificam de forma segura enquanto os outros módulos tem a lógica que pede Chip8 para modificar seus estados... Chip8 é o hardware bruto.
+Ok, centralizar todos os métodos que alteram os estados de Chip8 no impl Chip8 é overkill mas eu vou fazer assim mesmo porque já tá me dando TOC ver outros componentes podendo
+mudar estados do chip8 sem pedir pra ele... 
+Sim, é overkill, mas não me importo, está satisfatório! E também vou fazer o risc-v depois do chip-8, então o chip-8 é meio que uma preparação pro risc-v
+Me esqueci totalmente dos testes, era pra eu fazer a função no impl e o teste completo dela, mas aí fui fazendo só as funções, agora vou ter que fazer todos os testes
+Os testes em Rust são mais fáceis que os testes em python, é bem satisfatório de fazer eles e dar cargo test pra ver se tá tudo certo!
+A meta de amanhã é acabar esses testes pra poder avançar pra CPU em paz (dessa vez fazendo os testes junto com as funcionalidades...)
