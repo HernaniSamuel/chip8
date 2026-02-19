@@ -7,6 +7,7 @@ pub enum Chip8Error {
     StackUnderflow,
     InvalidRegisterAccess,
     InvalidPixelAccess,
+    InvalidPixelValue,
     InvalidKeyAccess,
 }
 
@@ -77,7 +78,7 @@ impl Chip8 {
 
     // Safe PC operations
     pub fn set_pc(&mut self, value: u16) -> Result<bool, Chip8Error> {
-        if value > 4094 {
+        if self.pc > 4094 {
             Err(Chip8Error::PCOutOfBounds)
         } else {
             self.pc = value;
@@ -87,10 +88,10 @@ impl Chip8 {
 
     // Safe I operations
     pub fn set_i(&mut self, value: u16) -> Result<bool, Chip8Error> {
-        if value >= 4096 {
+        self.i = value;
+        if self.i >= 4096 {
             Err(Chip8Error::IOutOfBounds)
         } else {
-            self.i = value;
             Ok(true)
         }
     }
@@ -144,8 +145,12 @@ impl Chip8 {
         if index >= 64 * 32 {
             Err(Chip8Error::InvalidPixelAccess)
         } else {
-            self.display[index] = value;
-            Ok(true)
+            if value == 1 || value == 0 {
+                self.display[index] = value;
+                Ok(true)
+            } else {
+                Err(Chip8Error::InvalidPixelValue)
+            }
         }
     }
 
@@ -236,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_stack_full_cycle() {
-        let mut chip =Chip8::new();
+        let mut chip = Chip8::new();
         for i in 0..16 {
             chip.push_stack(i).unwrap();
         }
@@ -245,5 +250,146 @@ mod tests {
         }
         assert_eq!(chip.sp, 0);
         assert!(chip.push_stack(99).is_ok());
+    }
+
+    // testing PC safety
+    #[test]
+    fn test_pc_out_of_boundaries() {
+        let mut chip = Chip8::new();
+        assert!(chip.set_pc(4095).is_ok());
+        assert!(chip.set_pc(4096).is_err());
+    }
+
+    #[test]
+    fn test_pc_value_alteration() {
+        let mut chip = Chip8::new();
+        chip.set_pc(1).unwrap();
+        assert_eq!(chip.pc, 1);
+        chip.set_pc(0x200).unwrap();
+        assert_eq!(chip.pc, 0x200);
+        chip.set_pc(0x10).unwrap();
+        assert_eq!(chip.pc, 0x10);
+        chip.set_pc(0).unwrap();
+        assert_eq!(chip.pc, 0);
+        assert!(chip.set_pc(4096).is_ok());
+        assert_eq!(chip.pc, 4096);
+    }
+
+    // testing I safety
+    #[test]
+    fn test_i_out_of_boundaries() {
+        let mut chip = Chip8::new();
+        assert!(chip.set_i(4095).is_ok());
+        assert!(chip.set_i(4096).is_err());
+    }
+
+    #[test]
+    fn test_i_value_alteration() {
+        let mut chip = Chip8::new();
+        chip.set_i(1).unwrap();
+        assert_eq!(chip.i, 1);
+        chip.set_i(0x200).unwrap();
+        assert_eq!(chip.i, 0x200);
+        chip.set_i(0x10).unwrap();
+        assert_eq!(chip.i, 0x10);
+        chip.set_i(0).unwrap();
+        assert_eq!(chip.i, 0);
+    }
+
+    // Testing safe ram handling
+    #[test]
+    fn test_invalid_memory_access() {
+        let mut chip = Chip8::new();
+        assert!(chip.get_ram(4096).is_err());
+        assert!(chip.get_ram(4095).is_ok());
+        assert!(chip.set_ram(4096, 255).is_err());
+        assert!(chip.set_ram(4095, 255).is_ok());
+    }
+
+    #[test]
+    fn test_ram_full_use() {
+        let mut chip = Chip8::new();
+        let mut j: u8 = 0;
+        for i in 0..4096 {
+            assert!(chip.set_ram(i, j).is_ok());
+            j = j.wrapping_add(1);
+        }
+        j = 0;
+        for i in 0..4096 {
+            assert_eq!(chip.get_ram(i).unwrap(), j);
+            j = j.wrapping_add(1);
+        }
+    }
+
+    // Testing keyboard safety
+    #[test]
+    fn test_keypad_full_use() {
+        let mut chip = Chip8::new();
+        for i in 0..16 {
+            assert!(chip.set_key_state(i, true).is_ok());
+        }
+        for i in 0..16 {
+            assert_eq!(chip.get_key_state(i).unwrap(), true);
+        }
+        for i in 0..16 {
+            assert!(chip.set_key_state(i, false).is_ok());
+        }
+        for i in 0..16 {
+            assert_eq!(chip.get_key_state(i).unwrap(), false);
+        }
+        assert!(chip.get_key_state(16).is_err());
+    }
+
+    // Testing screen safety
+    #[test]
+    fn test_screen_full_use() {
+        let mut chip = Chip8::new();
+        // Changes every pixel to 1
+        for i in 0..2048 { // 64*32 = 2048
+            assert!(chip.set_pixel(i, 1).is_ok());
+        }
+        // Check if limits are being checked
+        assert!(chip.set_pixel(2048, 1).is_err());
+        assert!(chip.set_pixel(0, 2).is_err());
+        // Check if all pixels have the value of 1
+        for i in 0..2048 {
+            assert_eq!(chip.get_pixel(i).unwrap(), 1);
+        }
+        // These 2 for loops set every pixel to 0 and check if it's really 0
+        for i in 0..2048 {
+            assert!(chip.set_pixel(i, 0).is_ok());
+        }
+        for i in 0..2048 {
+            assert_eq!(chip.get_pixel(i).unwrap(), 0);
+        }
+    }
+
+    // Testing V safety
+    #[test]
+    fn test_v_full_use() {
+        let mut chip = Chip8::new();
+        // test error case
+        assert!(chip.set_v(16, 255).is_err());
+        assert!(chip.get_v(16).is_err());
+        // test full use
+        for i in 0..16 {
+            assert!(chip.set_v(i, i as u8).is_ok());
+        }
+        for i in 0..16 {
+            assert_eq!(chip.get_v(i).unwrap(), i as u8);
+        }
+    }
+
+    // testing dt and st 
+    #[test]
+    fn test_timers() {
+        let mut chip = Chip8::new();
+        chip.set_dt(250);
+        chip.set_st(150);
+        for _ in 0..256 {
+            chip.decrease_timers();
+        }
+        assert_eq!(chip.dt, 0);
+        assert_eq!(chip.st, 0);
     }
 }

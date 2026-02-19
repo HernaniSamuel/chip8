@@ -35,3 +35,15 @@ Sim, é overkill, mas não me importo, está satisfatório! E também vou fazer 
 Me esqueci totalmente dos testes, era pra eu fazer a função no impl e o teste completo dela, mas aí fui fazendo só as funções, agora vou ter que fazer todos os testes
 Os testes em Rust são mais fáceis que os testes em python, é bem satisfatório de fazer eles e dar cargo test pra ver se tá tudo certo!
 A meta de amanhã é acabar esses testes pra poder avançar pra CPU em paz (dessa vez fazendo os testes junto com as funcionalidades...)
+
+Dia 3 - 19/02/2026
+Estou escrevendo o restante dos testes para garantir que a struct Chip8 está garantindo a transição de estados e a segurança da memória. No emulador original não tem tudo isso
+mas eu estou fazendo assim para me preparar para fazer sistemas maiores que vão precisar desse nível de atenção.
+Os testes já mostraram serviço ao indicarem o mal funcionamento da função set_i, que deveria atribuir i antes de conferir se i passou dos limites e emitir erro caso necessários
+O que o compilador não pega, os testes pegam, por isso que gosto de Rust, é a única linguagem que dá pra escrever o próprio código sem perder a sanidade em runtime...
+Se compila, é quase 100% de certeza que vai funcionar do jeito que foi projetado pra funcionar, sem erros, seguro!
+Também gosto do jeito que a linguagem força a modelagem de estados e suas transições sem esquecer um caso e sem permitir estados inválidos, definitivamente uma ótima linguagem de sistemas!
+É realmente terapêutico ver o sistema de tipos e os testes barrando todos os erros possíveis (ou ao menos 99.999% deles) antes mesmo de gerar o binário! Eu gosto dessa autonomia e segurança!
+Acabei os testes da struct Chip8, agora posso definir como vai ser a parte de I/O, acredito que ela também venha a ser conectada na struct Chip8 mas de um jeito diferente, Chip8 vai chamar
+funções vindas dos módulos que carregam o tratamento de teclas... ou então vai ser o contrário com esses módulos checando o estado de Chip8 e decidindo... hmmm vou ver isso amanhã...
+Por hoje eu fiz tudo o que me propuz a fazer!
