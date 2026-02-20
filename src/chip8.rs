@@ -1,3 +1,5 @@
+use super::display::Display;
+
 #[derive(Debug, Clone)]
 pub enum Chip8Error {
     PCOutOfBounds,
@@ -6,8 +8,6 @@ pub enum Chip8Error {
     StackOverflow,
     StackUnderflow,
     InvalidRegisterAccess,
-    InvalidPixelAccess,
-    InvalidPixelValue,
     InvalidKeyAccess,
 }
 
@@ -27,7 +27,7 @@ pub struct Chip8 {
     ram: [u8; 4096],
 
     // display buffer
-    display: [u8; 64 * 32],
+    pub display: Display,
 
     // keyboard buffer
     keyboard: [bool; 16],
@@ -42,6 +42,7 @@ pub struct Chip8 {
 // the chip8 impl only worry about safe state transition of its attributes, the logic beyond the changes isn't resposability of this impl
 impl Chip8 {
     pub fn new() -> Self {
+        let display = Display::new();
         Chip8 {
             pc: 0x200,
             v: [0; 16],
@@ -49,7 +50,7 @@ impl Chip8 {
             stack: [0; 16],
             i: 0,
             ram: [0; 4096],
-            display: [0; 64 * 32],
+            display,
             keyboard: [false; 16],
             dt: 0,
             st: 0,
@@ -129,28 +130,6 @@ impl Chip8 {
         } else {
             self.v[index] = value;
             Ok(true)
-        }
-    }
-
-    // Safe screen usage
-    pub fn get_pixel(&self, index: usize) -> Result<u8, Chip8Error> {
-        if index >= 64 * 32 {
-            Err(Chip8Error::InvalidPixelAccess)
-        } else {
-            Ok(self.display[index])
-        }
-    }
-
-    pub fn set_pixel(&mut self, index: usize, value: u8) -> Result<bool, Chip8Error> {
-        if index >= 64 * 32 {
-            Err(Chip8Error::InvalidPixelAccess)
-        } else {
-            if value == 1 || value == 0 {
-                self.display[index] = value;
-                Ok(true)
-            } else {
-                Err(Chip8Error::InvalidPixelValue)
-            }
         }
     }
 
@@ -340,30 +319,6 @@ mod tests {
         assert!(chip.get_key_state(16).is_err());
     }
 
-    // Testing screen safety
-    #[test]
-    fn test_screen_full_use() {
-        let mut chip = Chip8::new();
-        // Changes every pixel to 1
-        for i in 0..2048 { // 64*32 = 2048
-            assert!(chip.set_pixel(i, 1).is_ok());
-        }
-        // Check if limits are being checked
-        assert!(chip.set_pixel(2048, 1).is_err());
-        assert!(chip.set_pixel(0, 2).is_err());
-        // Check if all pixels have the value of 1
-        for i in 0..2048 {
-            assert_eq!(chip.get_pixel(i).unwrap(), 1);
-        }
-        // These 2 for loops set every pixel to 0 and check if it's really 0
-        for i in 0..2048 {
-            assert!(chip.set_pixel(i, 0).is_ok());
-        }
-        for i in 0..2048 {
-            assert_eq!(chip.get_pixel(i).unwrap(), 0);
-        }
-    }
-
     // Testing V safety
     #[test]
     fn test_v_full_use() {
@@ -380,7 +335,7 @@ mod tests {
         }
     }
 
-    // testing dt and st 
+    // testing dt and st
     #[test]
     fn test_timers() {
         let mut chip = Chip8::new();

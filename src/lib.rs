@@ -1,3 +1,7 @@
-pub mod core;
+pub mod chip8;
+pub mod cpu;
+pub mod display;
 
-pub use core::chip8;
+pub use chip8::Chip8;
+pub use cpu::Cpu;
+pub use display::Display;

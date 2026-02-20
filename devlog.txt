@@ -47,3 +47,10 @@ Também gosto do jeito que a linguagem força a modelagem de estados e suas tran
 Acabei os testes da struct Chip8, agora posso definir como vai ser a parte de I/O, acredito que ela também venha a ser conectada na struct Chip8 mas de um jeito diferente, Chip8 vai chamar
 funções vindas dos módulos que carregam o tratamento de teclas... ou então vai ser o contrário com esses módulos checando o estado de Chip8 e decidindo... hmmm vou ver isso amanhã...
 Por hoje eu fiz tudo o que me propuz a fazer!
+
+Dia 4 - 20/02/2026
+Estou vendo qual crate de tela usar e como organizar isso tudo... descobri que não preciso da divisão core/ e platform/, posso colocar tudo direto em src/ com os arquivos chip8.rs, screen.rs, 
+cpu.rs, keyboard.rs e sound.rs 
+Vou usar o crate minifb para desenhar na tela, ele naturalmente usa buffer assim como o chip-8 e é bem fácil de usar pelo que vi
+Ok, admito que usei um pouco da sugestão do Claude para a display.rs, mas não tem problema, meu foco de aprendizado aqui é na CPU e no Chip8,
+entrada e saída são meio secundários em termos de foco, vou economizar neurônios pra parte da CPU e das instruções, é o que quero aprender de verdade
