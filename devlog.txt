@@ -54,3 +54,10 @@ cpu.rs, keyboard.rs e sound.rs
 Vou usar o crate minifb para desenhar na tela, ele naturalmente usa buffer assim como o chip-8 e é bem fácil de usar pelo que vi
 Ok, admito que usei um pouco da sugestão do Claude para a display.rs, mas não tem problema, meu foco de aprendizado aqui é na CPU e no Chip8,
 entrada e saída são meio secundários em termos de foco, vou economizar neurônios pra parte da CPU e das instruções, é o que quero aprender de verdade
+Ok, ficou acoplado e dependente demais do minifb na questão de I/O com excessão do som que vai ser via rodio mas tudo bem, como eu disse, essa parte é secundária
+O que importa aqui é o jeito que a struct CPU (que será independente de crate) vai funcionar e como ela vai usar os outros módulos que se comportam como hardware virtual...
+Me sinto um pouco culpado por ter usado IA direto no código, mas é o IO, não to interessado nisso e nem quero perder tempo com coisa que não agrega pra aprender sobre CPU e tal
+Fazer o que, vamos acabar de pavimentar o caminho usando o rodio para o som, o Claude também está fazendo o código do som para que eu finalmente complete a parte de IO e possa focar na CPU
+Percebi que eu tinha esquecido dos getters dos atributos que a CPU e main vão precisar ler, agora sim temos getters e setters quem nem em POO e encapsulamento legal sem pub desnecessário
+To meio triste por ter usado IA diretamente no código :( mas foi controlado, eu fiz o buffer que conecta teclado e tela com a CPU, apenas usei IA pra ligar esses buffers com o I/O...
+É isso aí! O hardware virtual está pronto! Segunda-Feira eu começo a parte que abre o arquivo e faz fetch-decode-execute de cada instrução, a diversão de verdade está prestes a começar!

@@ -1,4 +1,4 @@
-use super::display::Display;
+use super::{display::Display, keyboard::Keyboard, audio::Audio};
 
 #[derive(Debug, Clone)]
 pub enum Chip8Error {
@@ -26,11 +26,14 @@ pub struct Chip8 {
     i: u16,
     ram: [u8; 4096],
 
-    // display buffer
+    // display virtual hardware
     pub display: Display,
 
-    // keyboard buffer
-    keyboard: [bool; 16],
+    // keyboard virtual hardware
+    pub keyboard: Keyboard,
+
+    // audio virtual hardware
+    pub audio: Audio,
 
     // delay timer
     dt: u8,
@@ -43,6 +46,8 @@ pub struct Chip8 {
 impl Chip8 {
     pub fn new() -> Self {
         let display = Display::new();
+        let keyboard = Keyboard::new();
+        let audio = Audio::new();
         Chip8 {
             pc: 0x200,
             v: [0; 16],
@@ -51,7 +56,8 @@ impl Chip8 {
             i: 0,
             ram: [0; 4096],
             display,
-            keyboard: [false; 16],
+            keyboard,
+            audio,
             dt: 0,
             st: 0,
         }
@@ -87,6 +93,10 @@ impl Chip8 {
         }
     }
 
+    pub fn get_pc(&self) -> &u16 {
+        &self.pc
+    }
+
     // Safe I operations
     pub fn set_i(&mut self, value: u16) -> Result<bool, Chip8Error> {
         self.i = value;
@@ -95,6 +105,10 @@ impl Chip8 {
         } else {
             Ok(true)
         }
+    }
+
+    pub fn get_i(&self) -> &u16 {
+        &self.i
     }
 
     // Safe ram usage
@@ -133,31 +147,21 @@ impl Chip8 {
         }
     }
 
-    // Safe keyboard usage
-    pub fn get_key_state(&self, index: usize) -> Result<bool, Chip8Error> {
-        if index >= 16 {
-            Err(Chip8Error::InvalidKeyAccess)
-        } else {
-            Ok(self.keyboard[index])
-        }
-    }
-
-    pub fn set_key_state(&mut self, index: usize, value: bool) -> Result<bool, Chip8Error> {
-        if index >= 16 {
-            Err(Chip8Error::InvalidKeyAccess)
-        } else {
-            self.keyboard[index] = value;
-            Ok(true)
-        }
-    }
-
     // Set and decrease timers
     pub fn set_dt(&mut self, value: u8) {
         self.dt = value;
     }
 
+    pub fn get_dt(&self) -> &u8 {
+        &self.dt
+    }
+
     pub fn set_st(&mut self, value: u8) {
         self.st = value;
+    }
+
+    pub fn get_st(&self) -> &u8 {
+        &self.st
     }
 
     pub fn decrease_timers(&mut self) {
@@ -243,15 +247,15 @@ mod tests {
     fn test_pc_value_alteration() {
         let mut chip = Chip8::new();
         chip.set_pc(1).unwrap();
-        assert_eq!(chip.pc, 1);
+        assert_eq!(chip.get_pc(), &1);
         chip.set_pc(0x200).unwrap();
-        assert_eq!(chip.pc, 0x200);
+        assert_eq!(chip.get_pc(), &0x200);
         chip.set_pc(0x10).unwrap();
-        assert_eq!(chip.pc, 0x10);
+        assert_eq!(chip.get_pc(), &0x10);
         chip.set_pc(0).unwrap();
-        assert_eq!(chip.pc, 0);
+        assert_eq!(chip.get_pc(), &0);
         assert!(chip.set_pc(4096).is_ok());
-        assert_eq!(chip.pc, 4096);
+        assert_eq!(chip.get_pc(), &4096);
     }
 
     // testing I safety
@@ -266,13 +270,13 @@ mod tests {
     fn test_i_value_alteration() {
         let mut chip = Chip8::new();
         chip.set_i(1).unwrap();
-        assert_eq!(chip.i, 1);
+        assert_eq!(chip.get_i(), &1);
         chip.set_i(0x200).unwrap();
-        assert_eq!(chip.i, 0x200);
+        assert_eq!(chip.get_i(), &0x200);
         chip.set_i(0x10).unwrap();
-        assert_eq!(chip.i, 0x10);
+        assert_eq!(chip.get_i(), &0x10);
         chip.set_i(0).unwrap();
-        assert_eq!(chip.i, 0);
+        assert_eq!(chip.get_i(), &0);
     }
 
     // Testing safe ram handling
@@ -300,25 +304,6 @@ mod tests {
         }
     }
 
-    // Testing keyboard safety
-    #[test]
-    fn test_keypad_full_use() {
-        let mut chip = Chip8::new();
-        for i in 0..16 {
-            assert!(chip.set_key_state(i, true).is_ok());
-        }
-        for i in 0..16 {
-            assert_eq!(chip.get_key_state(i).unwrap(), true);
-        }
-        for i in 0..16 {
-            assert!(chip.set_key_state(i, false).is_ok());
-        }
-        for i in 0..16 {
-            assert_eq!(chip.get_key_state(i).unwrap(), false);
-        }
-        assert!(chip.get_key_state(16).is_err());
-    }
-
     // Testing V safety
     #[test]
     fn test_v_full_use() {
@@ -344,7 +329,7 @@ mod tests {
         for _ in 0..256 {
             chip.decrease_timers();
         }
-        assert_eq!(chip.dt, 0);
-        assert_eq!(chip.st, 0);
+        assert_eq!(chip.get_dt(), &0);
+        assert_eq!(chip.get_st(), &0);
     }
 }

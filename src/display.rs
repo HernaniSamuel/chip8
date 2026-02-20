@@ -28,6 +28,11 @@ impl Display {
         }
     }
 
+    // Shows the window in use for other modules in a safe way
+    pub fn window(&self) -> &Window {
+        &self.window
+    }
+
     // Render converts display to scaled version buffer and updates screen
     pub fn render(&mut self) {
         for y in 0..32 {
