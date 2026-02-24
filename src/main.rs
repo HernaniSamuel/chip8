@@ -1,41 +1,33 @@
-use chip8::chip8::Chip8;
-use std::thread;
-use std::time::Duration;
+use chip8::chip8::{Chip8, Chip8Error};
+use std::env;
 
 fn main() {
-    let mut chip8 = Chip8::new();
-
-    // Adding a checkered pattern to see the screen and colors
-    for y in 0..32 {
-        for x in 0..64 {
-            if (x + y) % 2 == 0 {
-                chip8.display.set_pixel(y * 64 + x, 1).unwrap();
-            }
-        }
-    }
-
-    // Let's add some time in dt to see audio working
-    chip8.set_st(150);
-
-    // Main loop
-    while chip8.display.is_open() {
-        chip8.keyboard.update(chip8.display.window());
-
-        for key in 0..16 {
-            if chip8.keyboard.is_pressed(key).unwrap() {
-                println!("Tecla 0x{:X} pressionada", key);
-            }
-        }
-        
-        if chip8.get_st() > &0  {
-            chip8.audio.start_beep();
+    // Now, it'll run in the model "chip8 file.ch8"
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 || !args[1].ends_with(".ch8") {
+        let message = if args.len() != 2 {
+            "ERROR: Must have only 2 args. \n    example: 'chip8 file.ch8'".to_string()
         } else {
-            chip8.audio.stop_beep();
-        }
-
-        chip8.decrease_timers();
-        chip8.display.render();
-
-        thread::sleep(Duration::from_millis(16));
+            "ERROR: chip8 only accepts .ch8 files.".to_string()
+        };
+        eprintln!("{}", message);
+        std::process::exit(1)
     }
+
+    // With the .ch8 file, it's time to read and run it
+    let file_name: String = args[1].clone();
+    let rom = std::fs::read(&file_name).expect("Failed to read ROM");
+    let chip = create_and_run_chip(&rom as &[u8]);
+    match chip {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("ERROR: {:?}", e)
+        }
+    }
+}
+
+fn create_and_run_chip(rom: &[u8]) -> Result<(), Chip8Error> {
+    let mut chip = Chip8::new(rom)?;
+    chip.step()?;
+    Ok(())
 }

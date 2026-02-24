@@ -1,4 +1,4 @@
-use super::{display::Display, keyboard::Keyboard, audio::Audio};
+use super::{audio::Audio, display::Display, keyboard::Keyboard};
 
 #[derive(Debug, Clone)]
 pub enum Chip8Error {
@@ -9,7 +9,32 @@ pub enum Chip8Error {
     StackUnderflow,
     InvalidRegisterAccess,
     InvalidKeyAccess,
+    RomTooLarge,
+    UnknownInstruction,
+    InvalidPixelAccess,
+    InvalidPixelValue,
+    InvalidKey,
 }
+
+// In the original chip8, fontset was native from hardware
+const FONTSET: [u8; 80] = [
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80, // F
+];
 
 pub struct Chip8 {
     // Program Counter, points to the next instruction in ram
@@ -40,15 +65,22 @@ pub struct Chip8 {
 
     // sound timer
     st: u8,
+
+    // draw flag to avoid unnecessary rendering on screen
+    pub draw_flag: bool,
 }
 
 // the chip8 impl only worry about safe state transition of its attributes, the logic beyond the changes isn't resposability of this impl
 impl Chip8 {
-    pub fn new() -> Self {
+    pub fn new(rom: &[u8]) -> Result<Self, Chip8Error> {
+        if rom.len() > 4096 - 0x200 {
+            return Err(Chip8Error::RomTooLarge);
+        }
+
         let display = Display::new();
         let keyboard = Keyboard::new();
         let audio = Audio::new();
-        Chip8 {
+        let mut chip = Chip8 {
             pc: 0x200,
             v: [0; 16],
             sp: 0,
@@ -60,7 +92,16 @@ impl Chip8 {
             audio,
             dt: 0,
             st: 0,
-        }
+            draw_flag: false,
+        };
+
+        // loading fontset on hardware
+        chip.ram[0x50..0x50 + FONTSET.len()].copy_from_slice(&FONTSET);
+
+        // loading rom on hardware ram
+        chip.ram[0x200..0x200 + rom.len()].copy_from_slice(rom);
+
+        Ok(chip)
     }
 
     // Safe stack operations
@@ -172,7 +213,8 @@ impl Chip8 {
 
 impl Default for Chip8 {
     fn default() -> Self {
-        Self::new()
+        let rom: [u8; 1] = [0];
+        Self::new(&rom).unwrap()
     }
 }
 
@@ -180,16 +222,25 @@ impl Default for Chip8 {
 mod tests {
     use super::*;
 
+    // rom mock, rom isn't necessary for tests but I placed it as an argument for fn new
+    const ROM: [u8; 1] = [0];
+
+    // chip8 initializer for tests
+    fn chip_test() -> Chip8 {
+        let chip = Chip8::new(&ROM).unwrap();
+        chip
+    }
+
     // testing stack safety
     #[test]
     fn test_stack_underflow() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         assert!(chip.pop_stack().is_err());
     }
 
     #[test]
     fn test_stack_overflow() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         for i in 0..16 {
             chip.push_stack(i).unwrap();
         }
@@ -198,14 +249,14 @@ mod tests {
 
     #[test]
     fn test_stack_push() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         assert!(chip.push_stack(11).is_ok());
         assert_eq!(chip.stack[chip.sp as usize - 1], 11);
     }
 
     #[test]
     fn test_stack_pop() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         chip.push_stack(101).unwrap();
         chip.pop_stack().unwrap();
         assert_eq!(chip.sp, 0);
@@ -213,7 +264,7 @@ mod tests {
 
     #[test]
     fn test_stack_push_pop_sequence() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         chip.push_stack(11).unwrap();
         chip.push_stack(22).unwrap();
         chip.pop_stack().unwrap();
@@ -224,7 +275,7 @@ mod tests {
 
     #[test]
     fn test_stack_full_cycle() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         for i in 0..16 {
             chip.push_stack(i).unwrap();
         }
@@ -238,14 +289,14 @@ mod tests {
     // testing PC safety
     #[test]
     fn test_pc_out_of_boundaries() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         assert!(chip.set_pc(4095).is_ok());
         assert!(chip.set_pc(4096).is_err());
     }
 
     #[test]
     fn test_pc_value_alteration() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         chip.set_pc(1).unwrap();
         assert_eq!(chip.get_pc(), &1);
         chip.set_pc(0x200).unwrap();
@@ -261,14 +312,14 @@ mod tests {
     // testing I safety
     #[test]
     fn test_i_out_of_boundaries() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         assert!(chip.set_i(4095).is_ok());
         assert!(chip.set_i(4096).is_err());
     }
 
     #[test]
     fn test_i_value_alteration() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         chip.set_i(1).unwrap();
         assert_eq!(chip.get_i(), &1);
         chip.set_i(0x200).unwrap();
@@ -282,7 +333,7 @@ mod tests {
     // Testing safe ram handling
     #[test]
     fn test_invalid_memory_access() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         assert!(chip.get_ram(4096).is_err());
         assert!(chip.get_ram(4095).is_ok());
         assert!(chip.set_ram(4096, 255).is_err());
@@ -291,7 +342,7 @@ mod tests {
 
     #[test]
     fn test_ram_full_use() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         let mut j: u8 = 0;
         for i in 0..4096 {
             assert!(chip.set_ram(i, j).is_ok());
@@ -307,7 +358,7 @@ mod tests {
     // Testing V safety
     #[test]
     fn test_v_full_use() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         // test error case
         assert!(chip.set_v(16, 255).is_err());
         assert!(chip.get_v(16).is_err());
@@ -323,7 +374,7 @@ mod tests {
     // testing dt and st
     #[test]
     fn test_timers() {
-        let mut chip = Chip8::new();
+        let mut chip = chip_test();
         chip.set_dt(250);
         chip.set_st(150);
         for _ in 0..256 {

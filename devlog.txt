@@ -61,3 +61,18 @@ Fazer o que, vamos acabar de pavimentar o caminho usando o rodio para o som, o C
 Percebi que eu tinha esquecido dos getters dos atributos que a CPU e main vão precisar ler, agora sim temos getters e setters quem nem em POO e encapsulamento legal sem pub desnecessário
 To meio triste por ter usado IA diretamente no código :( mas foi controlado, eu fiz o buffer que conecta teclado e tela com a CPU, apenas usei IA pra ligar esses buffers com o I/O...
 É isso aí! O hardware virtual está pronto! Segunda-Feira eu começo a parte que abre o arquivo e faz fetch-decode-execute de cada instrução, a diversão de verdade está prestes a começar!
+obs: tenho que lembrar de rodar cargo clippy e fmt antes de cada commit...
+
+Dia 5 - 24/02/2026
+Agora é hora de aprender a abrir um arquivo .ch8 e fazer o fetch-decode-execute das instruções, o problema é que os arquivos inicialmente sempre terão mais instruções do que eu consigo
+cobrir... bom, acho que só preciso conseguir abrir um simples como o ibm-logo.ch8 e implementar todas as instruções dele pra ter essa arrancada e conseguir fazer o restante das instruções
+Ok, essa parte antes de 0x200 é um poço de chatice que não agrega em absolutamente nada mas é necessário pro chip8 funcionar com as ISOs dele... Só preciso acabar isso rápido pra começar as instruções
+O fontset é do hardware, assim como a função load_rom (mesmo que não seja, fica mais fácil só chamar ela via hardware e começar o ciclo com a CPU focando só nas instruções)
+Optei por colocar a load_rom em new também e passar a rom como parâmetro de new, isso permite até mesmo a execução de mais de uma rom ao mesmo tempo via main...
+O decode do Chip-8 é um inferno! Que ISA mais sobrecarregada! Troço irritante, parece criptografado!
+Optei por evitar bitwise operations onde eu pudesse evitar (tipo somando dois u8 no u16 e dando na mesma...)
+Acebou que eu decidi dissolver a struct Cpu em um impl separado do chip8 pras coisas mais relacionadas a CPU e meio que ficou overkill aqueles métodos seguros... ou não... 
+Decidi dissolver os outros enums de erro e deixar tudo em Chip8Error para a propagação de erro ? ficar mais fácil de usar
+Vi que é recomendado o chip-8 ter uma draw-flag pra evitar redesenhar a tela inteira a cada ciclo, então coloquei ela como booleano na struct Chip8
+Ok, fui overkill nesse projeto com esse monte de getters e setters, eu não conhecia o chip-8 direito antes de começar e acabei querendo fazer algo maior do que o original pedia... mas tá funcionando bem!
+Por exemplo, set_pc me ajudou a pegar um bug no teste da instrução clear, onde eu acidentalmente coloquei o set_pc dentro do for e ele acabou estourando o limite e me avisando na hora. 

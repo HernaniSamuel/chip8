@@ -1,3 +1,4 @@
+use crate::chip8::Chip8Error;
 use minifb::{Key, Window, WindowOptions};
 
 const SCALE: usize = 20;
@@ -60,22 +61,22 @@ impl Display {
     }
 
     // Safe screen usage
-    pub fn get_pixel(&self, index: usize) -> Result<u8, DisplayError> {
+    pub fn get_pixel(&self, index: usize) -> Result<u8, Chip8Error> {
         if index >= 64 * 32 {
-            Err(DisplayError::InvalidPixelAccess)
+            Err(Chip8Error::InvalidPixelAccess)
         } else {
             Ok(self.display[index])
         }
     }
 
-    pub fn set_pixel(&mut self, index: usize, value: u8) -> Result<bool, DisplayError> {
+    pub fn set_pixel(&mut self, index: usize, value: u8) -> Result<bool, Chip8Error> {
         if index >= 64 * 32 {
-            Err(DisplayError::InvalidPixelAccess)
+            Err(Chip8Error::InvalidPixelAccess)
         } else if value == 1 || value == 0 {
             self.display[index] = value;
             Ok(true)
         } else {
-            Err(DisplayError::InvalidPixelValue)
+            Err(Chip8Error::InvalidPixelValue)
         }
     }
 }
@@ -84,12 +85,6 @@ impl Default for Display {
     fn default() -> Self {
         Self::new()
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum DisplayError {
-    InvalidPixelAccess,
-    InvalidPixelValue,
 }
 
 #[cfg(test)]
