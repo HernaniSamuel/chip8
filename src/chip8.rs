@@ -1,4 +1,5 @@
 use super::{audio::Audio, display::Display, keyboard::Keyboard};
+use std::sync::atomic::Ordering;
 
 #[derive(Debug, Clone)]
 pub enum Chip8Error {
@@ -134,6 +135,11 @@ impl Chip8 {
         }
     }
 
+    pub fn increment_pc(&mut self) -> Result<(), Chip8Error> {
+        self.set_pc(*self.get_pc() + 2)?; // PC += 2
+        Ok(())
+    }
+
     pub fn get_pc(&self) -> &u16 {
         &self.pc
     }
@@ -206,8 +212,15 @@ impl Chip8 {
     }
 
     pub fn decrease_timers(&mut self) {
-        self.st = if self.st > 0 { self.st - 1 } else { self.st };
-        self.dt = if self.dt > 0 { self.dt - 1 } else { self.dt };
+        self.dt = self.dt.saturating_sub(1);
+        self.st = self.st.saturating_sub(1);
+
+        if self.get_st() > &0 && !self.audio.beeping.load(Ordering::Relaxed) {
+                self.audio.start_beep();
+            }
+            if self.get_st() == &0 && self.audio.beeping.load(Ordering::Relaxed) {
+                self.audio.stop_beep();
+            }
     }
 }
 

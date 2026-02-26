@@ -5,7 +5,7 @@ use std::time::Duration;
 pub struct Audio {
     sink: rodio::Sink,
     _stream: rodio::OutputStream,
-    beeping: AtomicBool,
+    pub beeping: AtomicBool,
 }
 
 impl Audio {

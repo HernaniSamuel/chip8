@@ -76,3 +76,11 @@ Decidi dissolver os outros enums de erro e deixar tudo em Chip8Error para a prop
 Vi que é recomendado o chip-8 ter uma draw-flag pra evitar redesenhar a tela inteira a cada ciclo, então coloquei ela como booleano na struct Chip8
 Ok, fui overkill nesse projeto com esse monte de getters e setters, eu não conhecia o chip-8 direito antes de começar e acabei querendo fazer algo maior do que o original pedia... mas tá funcionando bem!
 Por exemplo, set_pc me ajudou a pegar um bug no teste da instrução clear, onde eu acidentalmente coloquei o set_pc dentro do for e ele acabou estourando o limite e me avisando na hora. 
+
+Dia 6 - 26/02/2026
+Agora finalmente é a parte boa! Entender o que cada instrução faz, por ela no enum e executar! FINALMENTE! Eu só tenho que ficar esperto com a posição do PC e com a draw_flag, essas são meio implícitas...
+EU ODEIO TELAS... pelo amor de Deus, que aritmética complexa pra achar o pixel certo! Vou fazer essas instruções de IO primeiro, só elas que ainda estão bagunçando o meu rolê com instruções puras!
+Caramba Rust tem um bilhão de iteradores! Pra tudo já tem coisa pronta! 
+Fiz todas as instruções certinho pra abrir o IBM logo e não funcionar porque eu fiz o fetch somando em vez de usar bitwise, o decode também precisava de uma máscara de bits ou sei lá... o Claude que corrigiu
+Sim, me desviei das definições originais e deu problema... admito que se eu soubesse que seria tão desnecessariamente complicado eu nem teria começado e teria ido direto pro RV32IM.
+FUNCIONOU! A LOGO DA IBM FUNCIONOU! FINALMENTE UMA ROM .ch8 RODANDO NO MEU EMULADOR!
