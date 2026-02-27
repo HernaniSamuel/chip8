@@ -84,3 +84,12 @@ Caramba Rust tem um bilhão de iteradores! Pra tudo já tem coisa pronta!
 Fiz todas as instruções certinho pra abrir o IBM logo e não funcionar porque eu fiz o fetch somando em vez de usar bitwise, o decode também precisava de uma máscara de bits ou sei lá... o Claude que corrigiu
 Sim, me desviei das definições originais e deu problema... admito que se eu soubesse que seria tão desnecessariamente complicado eu nem teria começado e teria ido direto pro RV32IM.
 FUNCIONOU! A LOGO DA IBM FUNCIONOU! FINALMENTE UMA ROM .ch8 RODANDO NO MEU EMULADOR!
+
+Dia 7 - 27/02/2026
+Quero fazer todas as instruções relacionadas a IO primeiro pra deixar só as instruções de CPU puras mesmo, acho elas mais legais e não quero instrução de IO atrapalhando meu ritmo com as instruções legais
+Ao mesmo tempo, também estou priorizando instruções que aparecem nesse repositório de testes https://github.com/Timendus/chip8-test-suite/blob/main/README.md
+Parei de escrever testes porque as roms já são o teste, se elas rodam do mesmo jeito que as dele, então minhas instruções estão funcionando... 
+Estou usando o ChatGPT pra descrever o que cada instrução tem que fazer como um passo a passo no hardware, ele está agindo como uma documentação interativa
+A única instrução que não consegui escrever sozinho foi a Dxyn, ela é muito complexa porque mexe direto na tela, aí tem aquela coisa doida lá pra achar o pixel certo
+É, se o foco desse projeto fosse realmente só aprender a fazer o Chip-8 eu teria sido overkill sem agregar em nada, mas essa estrutura mais organizada vai me ajudar no riscv e wasm!
+Estou achando satisfatório implementar o execute das instruções! Só as bitwise operations que estão sendo difíceis de entender, mas o resto está bem legal! É divertido!

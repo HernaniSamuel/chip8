@@ -116,12 +116,12 @@ impl Chip8 {
         }
     }
 
-    pub fn pop_stack(&mut self) -> Result<bool, Chip8Error> {
+    pub fn pop_stack(&mut self) -> Result<u16, Chip8Error> {
         if self.sp == 0 {
             Err(Chip8Error::StackUnderflow)
         } else {
             self.sp -= 1;
-            Ok(true)
+            Ok(self.stack[self.sp as usize])
         }
     }
 
@@ -216,11 +216,11 @@ impl Chip8 {
         self.st = self.st.saturating_sub(1);
 
         if self.get_st() > &0 && !self.audio.beeping.load(Ordering::Relaxed) {
-                self.audio.start_beep();
-            }
-            if self.get_st() == &0 && self.audio.beeping.load(Ordering::Relaxed) {
-                self.audio.stop_beep();
-            }
+            self.audio.start_beep();
+        }
+        if self.get_st() == &0 && self.audio.beeping.load(Ordering::Relaxed) {
+            self.audio.stop_beep();
+        }
     }
 }
 
