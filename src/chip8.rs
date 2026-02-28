@@ -127,7 +127,7 @@ impl Chip8 {
 
     // Safe PC operations
     pub fn set_pc(&mut self, value: u16) -> Result<bool, Chip8Error> {
-        if self.pc > 4094 {
+        if value > 4094 {
             Err(Chip8Error::PCOutOfBounds)
         } else {
             self.pc = value;
@@ -221,6 +221,11 @@ impl Chip8 {
         if self.get_st() == &0 && self.audio.beeping.load(Ordering::Relaxed) {
             self.audio.stop_beep();
         }
+    }
+
+    // update method for keyboard (needs access to screen)
+    pub fn update_keyboard(&mut self) {
+        self.keyboard.update(self.display.window());
     }
 }
 

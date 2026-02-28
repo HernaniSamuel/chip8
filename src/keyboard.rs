@@ -44,6 +44,15 @@ impl Keyboard {
             Ok(self.keys[key])
         }
     }
+
+    pub fn get_pressed_key(&self) -> Option<usize> {
+        for (i, pressed) in self.keys.iter().enumerate() {
+            if *pressed {
+                return Some(i);
+            }
+        }
+        None
+    }
 }
 
 impl Default for Keyboard {

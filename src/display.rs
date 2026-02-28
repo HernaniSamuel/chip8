@@ -55,6 +55,11 @@ impl Display {
             .unwrap();
     }
 
+    // Function to update screen
+    pub fn window_update(&mut self) {
+        self.window.update();
+    }
+
     // Function to say the screen state (open or not)
     pub fn is_open(&self) -> bool {
         self.window.is_open() && !self.window.is_key_down(Key::Escape)

@@ -1,7 +1,6 @@
 use chip8::chip8::{Chip8, Chip8Error};
 use std::{
     env,
-    thread::sleep,
     time::{Duration, Instant},
 };
 
@@ -27,22 +26,23 @@ fn main() -> Result<(), Chip8Error> {
     let sixty_hz = Duration::from_micros(16_666); // 1/60s ≈ 16.666 ms
     let mut last_tick = Instant::now();
     while chip.display.is_open() {
-        // fetch - decode - execute
-        chip.step()?;
-
-        // update screen if needed
-        if chip.draw_flag {
-            chip.display.render();
+        chip.update_keyboard();
+        for _ in 0..10 {
+            // more steps
+            chip.step()?;
         }
 
-        // decrease timers and update audio at 60Hz
+        if chip.draw_flag {
+            chip.display.render();
+            chip.draw_flag = false;
+        } else {
+            chip.display.window_update();
+        }
+
         if last_tick.elapsed() >= sixty_hz {
             chip.decrease_timers();
             last_tick = Instant::now();
         }
-
-        // loop time control (if it's too fast)
-        sleep(Duration::from_millis(1));
     }
 
     Ok(())

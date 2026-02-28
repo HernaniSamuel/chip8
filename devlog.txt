@@ -93,3 +93,21 @@ Estou usando o ChatGPT pra descrever o que cada instrução tem que fazer como u
 A única instrução que não consegui escrever sozinho foi a Dxyn, ela é muito complexa porque mexe direto na tela, aí tem aquela coisa doida lá pra achar o pixel certo
 É, se o foco desse projeto fosse realmente só aprender a fazer o Chip-8 eu teria sido overkill sem agregar em nada, mas essa estrutura mais organizada vai me ajudar no riscv e wasm!
 Estou achando satisfatório implementar o execute das instruções! Só as bitwise operations que estão sendo difíceis de entender, mas o resto está bem legal! É divertido!
+
+Dia 8 - 28/02/2026
+Agora não tem mais segredo, é só ver o que a instrução faz e implementar até todas as roms estarem rodando sem reclamar de instrução desconhecida!
+Acredito que a parte funcional seja finalizada hoje enquanto a documentação (readme organizada) fique pra segunda feira
+Eu pensei que chip-8 seria apenas o hardware virtual e que CPU seria a lógica que governaria as transições de estado, aí chip-8 garantiria a segurança das transições de estado
+mas chip-8 acabou sendo tudo, o que me leva a perceber que eu deveria ter feito as transições de estado possíveis e não apenas seguras, tipo uma função skip_pc também... 
+vou levar isso pro risc-v e melhorar essa parte, sabendo que CPU e hardware virtual podem não ser tão separados quanto eu achava que eram. Mas vou ter que ser bem mais modular lá
+afinal é uma arquitetura limpa, moderna e modular, onde apenas o core RV32I é monolítico e o restante são extensões que podem ou não estar lá, tem que ser modular com baixo acoplamento
+Mas também vou ver se evito a burocracia, admito que meus getters e setters aqui tornaram as coisas bem mais demoradas do que deveriam ser, mas pelo menos é bem robusto e seguro!
+As roms de teste funcionam melhor que os testes próprios, elas usam tudo de uma vez de um jeito que quebra se tiver alguma coisa fora do lugar, talvez esse seja o melhor jeito de testar emuladores mesmo...
+Outra coisa que vou prestar mais atenção é nos nomes, me confundi porque coloquei dt e st em vez dos nomes completos, os nomes tem que ser claros mesmo que sejam longos
+Eu deveria ter documentado cada atributo e método usando o /// pro cargo gerar documentação pra mim, mas tudo bem eu posso fazer isso no riscv...
+Acho que vou fazer uma tabela de instruções do risc-v antes de começar a implementar, tipo o que que cada instrução RV32I faz no hardware passo a passo, 
+isso vai me ajudar a poder fazer sozinho e entender melhor antes de escrever código
+Meio que destilar a spec super densa e técnica pra algo mais fácil de entender pra implementar, um resumo prático... 
+Percebo que teria sido melhor se eu tivesse feito isso no chip-8, eu teria tido bem menos surpresas se tivesse feito diagramas e tabelas antes
+Talvez eu faça essa tabela descritiva pro chip-8 que implementei pra praticar isso também, no risc-v vai ser mais fácil porque não tem quirks e variações esquisitos dos anos 70
+É, até que valeu apena começar pelo chip-8 pra ter essa maturidade em questão de planejamento e documentação!
